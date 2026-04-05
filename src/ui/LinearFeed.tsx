@@ -8,7 +8,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import type { FeedCanvasProps } from '@tryvienna/sdk';
-import { usePluginClient, usePluginQuery } from '@tryvienna/sdk/react';
+import { usePluginClient, usePluginQuery, useTheme } from '@tryvienna/sdk/react';
 import {
   GET_PROJECTS,
   CREATE_WORKSTREAM,
@@ -144,25 +144,16 @@ interface LinearFeedIssue {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function LinearLogo({ className }: { className?: string }) {
+  const { resolvedTheme } = useTheme();
   return (
-    <>
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 100 100"
-        className={`block dark:hidden ${className ?? ''}`}
-        fill="#222326"
-      >
-        <path d={LINEAR_LOGO_PATH} />
-      </svg>
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 100 100"
-        className={`hidden dark:block ${className ?? ''}`}
-        fill="#fff"
-      >
-        <path d={LINEAR_LOGO_PATH} />
-      </svg>
-    </>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 100 100"
+      className={className}
+      fill={resolvedTheme === 'dark' ? '#fff' : '#222326'}
+    >
+      <path d={LINEAR_LOGO_PATH} />
+    </svg>
   );
 }
 
