@@ -1,0 +1,40 @@
+{
+  "name": "plugin-linear",
+  "version": "0.0.1",
+  "private": true,
+  "vienna-plugin": true,
+  "description": "Linear integration plugin for Vienna — issues, projects, and cycles",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./schema": "./src/schema.ts",
+    "./ui": "./src/ui/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "codegen": "graphql-codegen --config codegen.ts",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format:check": "prettier --check .",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "@linear/sdk": "^29.0.0",
+    "@tryvienna/sdk": "^0.1.6",
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "^6.1.2",
+    "@graphql-codegen/client-preset": "^5.2.3",
+    "@graphql-typed-document-node/core": "^3.2.0",
+    "@tryvienna/ui": "^0.0.7",
+    "@types/node": "^25.3.2",
+    "@types/react": "^19.0.0",
+    "@vienna/graphql": "file:../../../vienna/.worktrees/plugins/packages/graphql",
+    "graphql-tag": "^2.12.6",
+    "lucide-react": "^0.500.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.1"
+  }
+}
