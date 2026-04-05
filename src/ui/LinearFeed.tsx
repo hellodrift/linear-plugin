@@ -31,7 +31,7 @@ import {
   DropdownMenuRadioItem,
   Button,
 } from '@tryvienna/ui';
-import { Check, ChevronDown, ChevronUp, Loader2, Zap } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, Loader2, Settings, Zap } from 'lucide-react';
 import { GET_LINEAR_FEED_ISSUES, LINK_WORKSTREAM_ENTITY } from '../client/operations';
 import { useLinearFeedSettings } from './useLinearFeedSettings';
 
@@ -314,13 +314,38 @@ function LaunchButtonContent({
 // Main Component
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function LinearFeed({ onNavigate }: FeedCanvasProps) {
+export function LinearFeed({ hostApi, onNavigate }: FeedCanvasProps) {
   const client = usePluginClient();
   const { settings, updateSettings } = useLinearFeedSettings();
   const [expanded, setExpanded] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [countKey, setCountKey] = useState(0);
   const [launchPhase, setLaunchPhase] = useState<LaunchPhase>('idle');
+
+  // Track auth status
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const check = async () => {
+      try {
+        const [keys, oauth] = await Promise.all([
+          hostApi.getCredentialStatus('linear'),
+          hostApi.getOAuthStatus('linear'),
+        ]);
+        if (cancelled) return;
+        const hasKey = keys.some((k) => k.isSet);
+        const hasOAuth = oauth.some((p) => p.connected);
+        setIsAuthenticated(hasKey || hasOAuth);
+      } catch {
+        setIsAuthenticated(false);
+      }
+    };
+    check();
+    const handler = () => { check(); };
+    window.addEventListener('vienna-plugin:linear:settings-changed', handler);
+    return () => { cancelled = true; window.removeEventListener('vienna-plugin:linear:settings-changed', handler); };
+  }, [hostApi]);
 
   // Build query variables
   const statusTypes = settings.statusTypes.length > 0 ? settings.statusTypes : undefined;
@@ -334,6 +359,7 @@ export function LinearFeed({ onNavigate }: FeedCanvasProps) {
         statusTypes,
         assignmentFilter,
       },
+      skip: isAuthenticated === false,
       fetchPolicy: 'cache-and-network',
     },
   );
@@ -476,6 +502,27 @@ export function LinearFeed({ onNavigate }: FeedCanvasProps) {
 
   const selectionCount = selectedIds.size;
   const showCta = selectionCount > 0 || launchPhase !== 'idle';
+
+  // Not configured — show setup prompt
+  if (isAuthenticated === false) {
+    return (
+      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm dark:bg-surface-interactive">
+        <div className="flex items-center gap-2 px-4 py-3">
+          <LinearLogo className="h-4 w-4" />
+          <span className="text-sm font-medium">Linear</span>
+        </div>
+        <div className="border-t border-border px-4 py-6 text-center">
+          <Settings className="mx-auto mb-2 h-5 w-5 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">
+            Connect your Linear account to see issues here.
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground/70">
+            Open Linear settings in the sidebar to configure.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm dark:bg-surface-interactive">
